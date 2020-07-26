@@ -14,16 +14,18 @@ def ALERT(data):
     
     for st in data.bounding_boxes:           
         print(st.Class)
-        if st.Class=="cell phone":
+        if (st.Class=="cell phone") and (st.probability>0.5):
             midx=(st.xmin+st.xmax)/2
-            if midx<300:
+            oh=st.xmax-st.xmin
+            if midx<(320-oh):
                 servox=servox+1
-            elif midx>340:
+            elif midx>(320+oh):
                 servox=servox-1
-            midy=(st.ymin+st.ymax)/2
-            if midy<200:
+            midy=(st.ymax+st.ymin)/2
+            yeol=st.ymax-st.ymin
+            if midy<(240-yeol):
                 servoy=servoy-1
-            elif midy>280:
+            elif midy>(240+yeol):
                 servoy=servoy+1
             servox_pub.publish(servox)
             servoy_pub.publish(servoy)
