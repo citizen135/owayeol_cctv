@@ -1,0 +1,22 @@
+<launch>
+  <!-- Arguments -->
+  <!--arg name="open_rviz" default="true"/-->
+
+  <node pkg="rosserial_python" type="serial_node.py" name="foxbot_core" output="screen">
+      <param name="port" value="/dev/ttyACM0"/>
+      <param name="baud" value="115200"/>
+  </node>
+
+  <include file="$(find jetson_camera)/launch/jetson_camera.launch"/>
+
+  <include file="$(find darknet_ros)/launch/darknet_ros.launch"/>
+
+  <node pkg="owayeol_cctv" type="cctv.py"  name="cctv" output="screen" />
+
+  <!-- rviz
+  <group if="$(arg open_rviz)"> 
+    <node pkg="rviz" type="rviz" name="rviz" required="true"
+          args="-d $(find turtlebot3_slam)/rviz/turtlebot3_$(arg slam_methods).rviz"/>
+  </group>
+  -->
+</launch>
