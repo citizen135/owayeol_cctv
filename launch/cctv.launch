@@ -6,8 +6,9 @@
       <param name="port" value="/dev/ttyACM0"/>
       <param name="baud" value="115200"/>
   </node>
-
+  <!--camera-->
   <include file="$(find jetson_camera)/launch/jetson_camera.launch"/>
+  <!--node pkg="cv_camera" type="cv_camera_node"  name="cv_camera" output="screen"/-->
 
   <include file="$(find darknet_ros)/launch/darknet_ros.launch"/>
 
