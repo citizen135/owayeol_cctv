@@ -1,7 +1,9 @@
 <launch>
   <!-- Arguments -->
   <!--arg name="open_rviz" default="true"/-->
+  <arg name="model" default="$(find owayeol_cctv)/urdf/cctv.urdf" />
 
+  <param name="robot_description" textfile="$(arg model)" />
   <node pkg="rosserial_python" type="serial_node.py" name="foxbot_core" output="screen">
       <param name="port" value="/dev/ttyACM0"/>
       <param name="baud" value="115200"/>
@@ -11,9 +13,8 @@
   <!--node pkg="cv_camera" type="cv_camera_node"  name="cv_camera" output="screen"/-->
 
   <include file="$(find darknet_ros)/launch/darknet_ros.launch"/>
-
   <node pkg="owayeol_cctv" type="cctv.py"  name="cctv" output="screen" />
-
+  <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher" />
   <!-- rviz
   <group if="$(arg open_rviz)"> 
     <node pkg="rviz" type="rviz" name="rviz" required="true"

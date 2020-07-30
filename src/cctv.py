@@ -14,19 +14,19 @@ def ALERT(data):
     
     for st in data.bounding_boxes:           
         print(st.Class)
-        if (st.Class=="person") and (st.probability>0.5):
+        if (st.Class=="cell phone") and (st.probability>0.5):
             midx=(st.xmin+st.xmax)/2
             oh=st.xmax-st.xmin
             if midx<(320-oh):
-                servox=servox+0.1
+                servox=servox+0.02
             elif midx>(320+oh):
-                servox=servox-0.1
+                servox=servox-0.02
             midy=(st.ymax+st.ymin)/2
             yeol=st.ymax-st.ymin
             if midy<(240-yeol):
-                servoy=servoy-0.1
+                servoy=servoy+0.01
             elif midy>(240+yeol):
-                servoy=servoy+0.1
+                servoy=servoy-0.01
             
 def talker():
     global servox
@@ -34,11 +34,11 @@ def talker():
 
     pub = rospy.Publisher('joint_states', JointState, queue_size=10)
     rospy.init_node('joint_state_publisher')
-    rate = rospy.Rate(1) # 10hz
+    rate = rospy.Rate(10) # 10hz
     hello_str = JointState()
     hello_str.header = Header()
     hello_str.header.stamp = rospy.Time.now()
-    hello_str.name = ['joint0', 'joint1']
+    hello_str.name = ['joint1', 'joint2']
     hello_str.position = [servox, servoy]
     hello_str.velocity = []
     hello_str.effort = []
