@@ -1,6 +1,6 @@
 <launch>
   <!-- Arguments -->
-  <!--arg name="open_rviz" default="true"/-->
+  <arg name="open_rviz" default="false"/>
   <arg name="model" default="$(find owayeol_cctv)/urdf/cctv.urdf" />
 
   <param name="robot_description" textfile="$(arg model)" />
@@ -9,16 +9,15 @@
       <param name="baud" value="115200"/>
   </node>
   <!--camera-->
-  <include file="$(find jetson_camera)/launch/jetson_camera.launch"/>
+  <!--include file="$(find jetson_camera)/launch/jetson_camera.launch"/-->
   <!--node pkg="cv_camera" type="cv_camera_node"  name="cv_camera" output="screen"/-->
 
-  <include file="$(find darknet_ros)/launch/darknet_ros.launch"/>
-  <node pkg="owayeol_cctv" type="cctv.py"  name="cctv" output="screen" />
+  <!--include file="$(find darknet_ros)/launch/darknet_ros.launch"/-->
+  <node pkg="owayeol_cctv" type="point.py"  name="cctv" output="screen" />
   <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher" />
-  <!-- rviz
+
   <group if="$(arg open_rviz)"> 
     <node pkg="rviz" type="rviz" name="rviz" required="true"
-          args="-d $(find turtlebot3_slam)/rviz/turtlebot3_$(arg slam_methods).rviz"/>
+          args="-d $(find owayeol_cctv)/rviz/cctv.rviz"/>
   </group>
-  -->
 </launch>

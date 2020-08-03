@@ -1,5 +1,5 @@
+#define USE_USBCON
 #include <Arduino.h>
-#include <DFRobot_TFmini.h>
 #include <Servo.h> 
 
 #include <ros.h>
@@ -7,13 +7,21 @@
 #include <std_msgs/Int32.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Range.h>
+
 //ROS 노드 클래스 변수
 ros::NodeHandle  nh;
 sensor_msgs::Range range_msg;
 ros::Publisher pub_range("range_data", &range_msg);
-SoftwareSerial mySerial(8, 7);
-DFRobot_TFmini  TFmini;
+
+float dist; //actual distance measurements of LiDAR
+int strength; //signal strength of LiDAR
+float temprature;
+int check; //save check value
+int i;
+int uart[9]; //save data measured by LiDAR
+const int HEADER=0x59; //frame header of data package
 float distance;
+
 
 //서보 클래스 변수
 Servo robot_servos[2];
@@ -34,12 +42,9 @@ void writeServos() {
     }
     robot_servos[j].write(target_angle);
     SERVO_CURRENT_POSITIONS[j] = target_angle;
-  }
-  if (TFmini.measure()) {                  // 거리와 신호의 강도를 측정합니다. 성공하면 을 반환하여 if문이 작동합니다.
-      distance = TFmini.getDistance();       // 거리값을 cm단위로 불러옵니다.
-      range_msg.range=distance/10;
-      range_msg.header.stamp = nh.now();
-      pub_range.publish(&range_msg);
+    //range_msg.range=distance/10;
+    //range_msg.header.stamp = nh.now();
+    //pub_range.publish(&range_msg);
   }
   nh.spinOnce();
 }
@@ -70,20 +75,41 @@ void setup() {
   range_msg.radiation_type = sensor_msgs::Range::INFRARED;
   range_msg.header.frame_id =  frameid;
   range_msg.field_of_view = 0.01;
-  range_msg.min_range = 0.1;
-  range_msg.max_range = 12;
-
-  TFmini.begin(mySerial);
+  range_msg.min_range = -12;
+  range_msg.max_range = -0.1;
+  Serial1.begin(115200);
 }
 
 void loop() {
-  // Keep calling the spinOnce() method in this infinite loop to stay tightly coupled with the ROS Serial
   nh.spinOnce();
-  if (TFmini.measure()) {                  // 거리와 신호의 강도를 측정합니다. 성공하면 을 반환하여 if문이 작동합니다.
-      distance = TFmini.getDistance();       // 거리값을 cm단위로 불러옵니다.
-      range_msg.range=distance/10;
-      range_msg.header.stamp = nh.now();
-      pub_range.publish(&range_msg);
+  if(Serial1.available()) { //check if serial port has data input
+    if(Serial1.read() == HEADER) { //assess data package frame header 0x59
+    uart[0]=HEADER;
+    //Serial.println(uart[0]);
+    //Serial.println(Serial1.read());
+    //if (Serial1.read() == -1) { //assess data package frame header 0x59
+    //uart[1] = -1;
+    //Serial.println("sdf");
+    for (i = 2; i < 9; i++) { //save data in array
+      uart[i] = Serial1.read();
+    }
+    check = uart[0] + uart[1] + uart[2] + uart[3] + uart[4] + uart[5] + uart[6] + uart[7];
+    //Serial.println(check);
+    //Serial.println(uart[8]);
+    //if (uart[8] == (check & 0xff)){ //verify the received data as per protocol
+    dist = uart[2] + uart[3] * 256; //calculate distance value
+    strength = uart[4] + uart[5] * 256; //calculate signal strength value
+    temprature = uart[6] + uart[7] *256;//calculate chip temprature
+    temprature = temprature/8 - 256;
+    
+    if((dist>0)&&(dist<1200))
+      distance = dist;       // 거리값을 cm단위로 불러옵니다.
+    range_msg.range=distance/-100;
+    range_msg.header.stamp = nh.now();
+    pub_range.publish(&range_msg);
+    delay(1);
+    
+    }
   }
-  delay(5);
+
 }

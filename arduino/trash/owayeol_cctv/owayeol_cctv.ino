@@ -1,26 +1,22 @@
 #include <Arduino.h>
-#include <DFRobot_TFmini.h>
+#define USE_USBCON
+//서보 라이브러리
 #include <Servo.h> 
-
+//로스 라이브러리
 #include <ros.h>
-#include <std_msgs/UInt16.h>
+//메시지 해더
 #include <std_msgs/Int32.h>
 #include <sensor_msgs/JointState.h>
-#include <sensor_msgs/Range.h>
+
 //ROS 노드 클래스 변수
 ros::NodeHandle  nh;
-sensor_msgs::Range range_msg;
-ros::Publisher pub_range("range_data", &range_msg);
-SoftwareSerial mySerial(8, 7);
-DFRobot_TFmini  TFmini;
-float distance;
 
 //서보 클래스 변수
 Servo robot_servos[2];
-char servo_pins[2] = {6, 5}; // PWM Pins on Arduino Uno
+int servo_pins[2] = {6, 5}; // PWM Pins on Arduino Uno
 int mid_positions[2] = {90, 90};
 int SERVO_CURRENT_POSITIONS[2];
-char frameid[] = "/link3";
+
 float TARGET_JOINT_POSITIONS[2] = {0,0};
 
 void writeServos() {
@@ -34,12 +30,6 @@ void writeServos() {
     }
     robot_servos[j].write(target_angle);
     SERVO_CURRENT_POSITIONS[j] = target_angle;
-  }
-  if (TFmini.measure()) {                  // 거리와 신호의 강도를 측정합니다. 성공하면 을 반환하여 if문이 작동합니다.
-      distance = TFmini.getDistance();       // 거리값을 cm단위로 불러옵니다.
-      range_msg.range=distance/10;
-      range_msg.header.stamp = nh.now();
-      pub_range.publish(&range_msg);
   }
   nh.spinOnce();
 }
@@ -65,25 +55,10 @@ void setup() {
   nh.getHardware()->setBaud(115200);
   nh.initNode();
   nh.subscribe(servo_control_subscriber_joint_state);
-  nh.advertise(pub_range);
-  
-  range_msg.radiation_type = sensor_msgs::Range::INFRARED;
-  range_msg.header.frame_id =  frameid;
-  range_msg.field_of_view = 0.01;
-  range_msg.min_range = 0.1;
-  range_msg.max_range = 12;
-
-  TFmini.begin(mySerial);
 }
 
 void loop() {
   // Keep calling the spinOnce() method in this infinite loop to stay tightly coupled with the ROS Serial
   nh.spinOnce();
-  if (TFmini.measure()) {                  // 거리와 신호의 강도를 측정합니다. 성공하면 을 반환하여 if문이 작동합니다.
-      distance = TFmini.getDistance();       // 거리값을 cm단위로 불러옵니다.
-      range_msg.range=distance/10;
-      range_msg.header.stamp = nh.now();
-      pub_range.publish(&range_msg);
-  }
-  delay(5);
+  delay(1);
 }
