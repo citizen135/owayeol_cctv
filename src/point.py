@@ -10,14 +10,17 @@ from sensor_msgs.msg import JointState,Range
 import math
 servox=0
 servoy=0
-
+directio=0
+tok=0
 def ALERT(data):
     global servox
     global servoy
+    global tok
     
     for st in data.bounding_boxes:           
         print(st.Class)
-        if (st.Class=="cup") and (st.probability>0.5):
+        if (st.Class=="person") and (st.probability>0.5):
+            tok=0
             midx=(st.xmin+st.xmax)/2
             oh=st.xmax-st.xmin
             if midx<(320-oh):
@@ -70,10 +73,34 @@ def talker():
     pub.publish(hello_str)
     rate.sleep()
 
+def tic(event):
+    global tok
+    global directio
+    global servox
+    head=(-1.5,0,1.5)
+    tok=tok+1
+
+    if tok>=50:
+        tok=0
+        servox=head[directio]
+        directio=directio+1
+        if directio==3:
+            directio=0
+
+            
+
+
+
 if __name__ == '__main__':
     rospy.init_node('owayeol_cctv_point')
     rospy.Subscriber("/darknet_ros/bounding_boxes",BoundingBoxes,ALERT)
     rospy.Subscriber("/range_data",Range,point)
+    #rospy.init_node('joint_state_publisher')
+    servox=0
+    servoy=0
+    
+    rospy.Timer(rospy.Duration(0.1), tic)
+    
     # servox_pub = rospy.Publisher("/servo_x",UInt16, queue_size=1)
     # servoy_pub = rospy.Publisher("/servo_y",UInt16, queue_size=1)
     # servox_pub.publish(servox)

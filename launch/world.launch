@@ -1,0 +1,23 @@
+<launch>
+  <arg name="gui" default="True" />
+
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find map_launcher)/map/map.yaml" >
+    <param name="frame_id" value="/map" />
+  </node>
+  <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster1" args="2 -4.2 0 0 0 0 1 map base 100" />
+  <param name="use_gui" value="$(arg gui)"/>
+  <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher" />
+
+
+  <param name="robot_description1" textfile="$(find owayeol_cctv)/urdf/cctv.urdf" />
+
+  <param name="robot_description2" textfile="$(find turtlebot3_description)/urdf/turtlebot3_burger.urdf.xacro" />
+  <include file="$(find multi_turtlebots_nav)/launch/amcl_robot2.launch" />
+  <include file="$(find multi_turtlebots_nav)/launch/move_base_2.launch" />
+
+  <param name="robot_description3" textfile="$(find owayeol)/urdf/robot.urdf" />
+  <include file="$(find multi_turtlebots_nav)/launch/amcl_robot3.launch" />
+  <include file="$(find multi_turtlebots_nav)/launch/move_base_3.launch" />
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find map_launcher)/rviz/turtlebot3_navigation.rviz" />
+</launch>
